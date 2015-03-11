@@ -103,6 +103,7 @@ class TraceResource(Resource):
         request.responseHeaders.setRawHeaders(
             'content-type', ['application/json'])
 
+        request.setHeader('Access-Control-Allow-Origin', '*')
         body = request.content.read()
 
         try:
@@ -152,3 +153,9 @@ class TraceResource(Resource):
                 continue
 
         return json.dumps({'succeeded': succeeded, 'failed': failed})
+     
+    def render_OPTIONS(self, request):
+        request.setHeader('Access-Control-Allow-Origin', '*')
+        request.setHeader('Access-Control-Allow-Methods', 'POST')
+        request.setHeader('Access-Control-Max-Age', 86400) # One Day
+        return ""

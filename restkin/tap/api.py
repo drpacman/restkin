@@ -34,7 +34,10 @@ class Options(BaseOptions):
         ["port", "p", "tcp:6956",
          "Port to listen on for RESTkin HTTP API requests"],
         ["scribe", None, "tcp:localhost:1463",
-         "endpoint string description for where to connect to scribe"]]
+         "endpoint string description for where to connect to scribe"],
+        ["allowed-origins", "o", "test.com,test.other.com",
+         "comma seperated list of hosts to allow to connect. Wild cards allowed e.g. use *"]
+    ]
 
     optFlags = [["rproxy", "r", "Use node-rproxy for authentication."]]
 
@@ -47,7 +50,7 @@ def makeService(config):
             ScribeClient(
                 clientFromString(reactor, config['scribe']))))
 
-    root = RootResource()
+    root = RootResource(config['allowed-origins'])
 
     if config['rproxy']:
         root = RProxyWrapper(root)

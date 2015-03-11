@@ -59,31 +59,47 @@ class RProxyWrapper(Resource):
 
 
 class RootResource(Resource):
+    def __init__(self, allowedOrigins):
+        Resource.__init__(self)
+        self._allowedOrigins = allowedOrigins
+
     def getChild(self, path, request):
         if path == 'v1.0':
-            return VersionResource()
+            return VersionResource(self._allowedOrigins)
 
         return NoResource()
 
 
 class VersionResource(Resource):
+    def __init__(self, allowedOrigins):
+        Resource.__init__(self)
+        self._allowedOrigins = allowedOrigins
+
     def getChild(self, path, request):
-        return TenantResource(path)
+        return TenantResource(path, self._allowedOrigins)
 
 
 class TenantResource(Resource):
-    def __init__(self, tenant_id):
+    def __init__(self, tenant_id, allowedOrigins):
         Resource.__init__(self)
         self._tenant_id = tenant_id
+        self._allowedOrigins = allowedOrigins
 
     def getChild(self, path, request):
         if path == 'trace':
-            return TraceResource()
+            return TraceResource(self._allowedOrigins)
 
         return NoResource()
 
 
 class TraceResource(Resource):
+    """
+
+    """
+    def __init__(self, allowedOrigins):
+       Resource.__init__(self)
+       self._allowedOrigins = allowedOrigins
+
     """
     TraceResource is responsible for taking POST requests and converting
     the JSON output to a scribe log.
@@ -103,7 +119,7 @@ class TraceResource(Resource):
         request.responseHeaders.setRawHeaders(
             'content-type', ['application/json'])
 
-        request.setHeader('Access-Control-Allow-Origin', '*')
+        request.setHeader('Access-Control-Allow-Origin', self._allowedOrigins)
         body = request.content.read()
 
         try:
@@ -155,7 +171,7 @@ class TraceResource(Resource):
         return json.dumps({'succeeded': succeeded, 'failed': failed})
      
     def render_OPTIONS(self, request):
-        request.setHeader('Access-Control-Allow-Origin', '*')
+        request.setHeader('Access-Control-Allow-Origin', self._allowedOrigins)
         request.setHeader('Access-Control-Allow-Methods', 'POST')
         request.setHeader('Access-Control-Max-Age', 86400) # One Day
         return ""
